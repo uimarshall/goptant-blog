@@ -1,0 +1,1 @@
+"""goptant blog backend package."""
