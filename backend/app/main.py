@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
-from celery.result import AsyncResult
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-
 from app.celery_app import celery_app
 from app.config import settings
 from app.db import init_database, list_posts
 from app.tasks import summarize_post
+from celery.result import AsyncResult
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 
 class PostResponse(BaseModel):
@@ -57,7 +56,10 @@ def healthcheck() -> dict[str, str]:
 
 @app.get("/api/posts", response_model=list[PostResponse])
 def get_posts() -> list[PostResponse]:
-    return [PostResponse(**{**post, "published_at": post["published_at"].isoformat()}) for post in list_posts()]
+    return [
+        PostResponse(**{**post, "published_at": post["published_at"].isoformat()})
+        for post in list_posts()
+    ]
 
 
 @app.post("/api/tasks/summarize-latest", response_model=TaskQueuedResponse)
@@ -78,5 +80,11 @@ def queue_latest_post_summary() -> TaskQueuedResponse:
 @app.get("/api/tasks/{task_id}", response_model=TaskStatusResponse)
 def get_task_status(task_id: str) -> TaskStatusResponse:
     result = AsyncResult(task_id, app=celery_app)
-    payload = result.result if result.successful() and isinstance(result.result, dict) else None
-    return TaskStatusResponse(task_id=task_id, status=result.status.lower(), result=payload)
+    payload = (
+        result.result
+        if result.successful() and isinstance(result.result, dict)
+        else None
+    )
+    return TaskStatusResponse(
+        task_id=task_id, status=result.status.lower(), result=payload
+    )
