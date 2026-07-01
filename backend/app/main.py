@@ -5,7 +5,6 @@ from contextlib import asynccontextmanager
 from app.celery_app import celery_app
 from app.config import settings
 from app.db import init_database, list_posts
-from app.tasks import summarize_post
 from celery.result import AsyncResult
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -73,7 +72,7 @@ def queue_latest_post_summary() -> TaskQueuedResponse:
         title = "Untitled draft"
         body = "Draft content"
 
-    task = summarize_post.delay(title, body)
+    task = celery_app.send_task("app.tasks.summarize_post", args=[title, body])
     return TaskQueuedResponse(task_id=task.id, status="queued")
 
 

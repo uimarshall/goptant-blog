@@ -1,5 +1,11 @@
 # goptant-blog
 
+## Activating the venv from the terminal.
+
+- `uv run main.py` - will run the file in the existing .venv created when the app was instantiated using `uv init`.
+
+- And if the `venv` is not there or has been deleted, running `uv run main.py` will automatically create the `venv` and install all dependencies and thus activate it again.
+
 A minimal Medium-style blog starter built with:
 
 - FastAPI for the backend API
