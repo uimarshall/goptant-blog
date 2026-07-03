@@ -1,7 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI()  # Initialize FastAPI application
+
+# Mount static files directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Set up Jinja2 templates directory
+templates = Jinja2Templates(directory="templates")
 
 
 posts: list[dict] = [
@@ -44,121 +52,22 @@ posts: list[dict] = [
 
 
 # Decorators are used to define routes in FastAPI. The @app.get("/") decorator indicates that this function will handle GET requests to the root URL ("/").
-@app.get("/")
-def home():
-    return {"message": "Hello from backend server!"}
+# include_in_schema=False hides this route from the automatically generated API docs.
+@app.get("/", include_in_schema=False, name="home")
+@app.get("/posts", include_in_schema=False, name="posts")
+def home(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "home.html",
+        {
+            "title": "Home",
+            "heading": "Welcome to the Goptant Home Page",
+            "paragraph": "This is a simple blog built with FastAPI and Jinja2.",
+            "posts": posts,
+        },  # context dictionary containing variables to be passed to the template, the keys in the dictionary correspond to variable names in the template, and the values are the data that will be rendered.
+    )
 
 
 @app.get("/api/posts")
 def get_posts():
     return {"posts": posts}
-
-
-# The @app.get("/api/html") decorator indicates that this function will handle GET requests to the "/api/html" URL. The response_class=HTMLResponse argument tells FastAPI this endpoint returns HTML (not JSON).
-
-# The include_in_schema=False argument means this endpoint won't appear in the automatically generated API docs.
-
-
-@app.get("/api/html", response_class=HTMLResponse, include_in_schema=False)
-def get_post_html():
-    html_content = """
-    <html>
-        <head>
-            <title>Blog Posts</title>
-        </head>
-        <body>
-            <h1>Blog Posts</h1>
-            <ul>
-                {}
-            </ul>
-        </body>
-    </html>
-    """.format(
-        "".join(
-            f"<li><strong>{post['title']}</strong> by {post['author']} on {post['date_posted']}</li>"
-            for post in posts
-        )
-    )
-    return HTMLResponse(content=html_content, status_code=200)
-
-
-'''
-
-1. `@app.get("/api/html", response_class=HTMLResponse)`  
-This is a FastAPI route decorator.  
-It means: when a browser sends a GET request to `/api/html`, run the function below.  
-`response_class=HTMLResponse` tells FastAPI this endpoint returns HTML (not JSON).
-
-2. `def get_post_html():`  
-Defines the function that handles that request.
-
-3. `html_content = """`  
-Starts a multi-line Python string. This string will contain your full HTML page.
-
-4. `<html>`  
-Root HTML tag.
-
-5. `<head>`  
-Start of metadata section of the page.
-
-6. `<title>Blog Posts</title>`  
-Sets browser tab title to “Blog Posts”.
-
-7. `</head>`  
-Ends head section.
-
-8. `<body>`  
-Starts visible page content.
-
-9. `<h1>Blog Posts</h1>`  
-Main heading displayed on page.
-
-10. `<ul>`  
-Starts an unordered list.
-
-11. `{}`  
-A placeholder inside the string.  
-This will be replaced by `.format(...)` with generated `<li>` items.
-
-12. `</ul>`  
-Ends unordered list.
-
-13. `</body>`  
-Ends visible content area.
-
-14. `</html>`  
-Ends HTML document.
-
-15. `""".format(`  
-Closes the multi-line string and immediately calls `.format(...)` to fill placeholders.  
-Since there is one `{}`, you pass one value to `.format(...)`.
-
-16. `"".join(`  
-Creates one big string by joining many small strings together (each small string is one `<li>`).
-
-17. `f"<li><strong>{post['title']}</strong> by {post['author']} on {post['date_posted']}</li>"`  
-This is an f-string template for one list item.  
-For each post, it builds HTML like:  
-`<li><strong>Title</strong> by Author on Date</li>`  
-`<strong>` makes the title bold.
-
-18. `for post in posts`  
-This is a generator expression iterating through every dictionary in `posts`.
-
-19. `)`  
-Ends `join(...)`.
-
-20. `)`  
-Ends `format(...)`.  
-At this point, `html_content` is a complete HTML page string with all posts inserted.
-
-21. `return HTMLResponse(content=html_content, status_code=200)`  
-Returns the HTML to the client.  
-`status_code=200` means “OK/success”.
-
-Quick mental model:
-1. Build an HTML template with one placeholder.
-2. Generate `<li>` rows from `posts`.
-3. Insert rows into placeholder.
-4. Return final HTML page.
-'''
