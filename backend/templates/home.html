@@ -1,5 +1,3 @@
-<!-- ========== Start Section ========== -->
-
 {% extends "layout.html" %} {% block content %} {% for post in posts %}
 <article class="content-section py-3 px-4 mb-4">
   <div class="d-flex align-items-start gap-4">
@@ -17,12 +15,14 @@
         <small class="text-body-secondary">{{ post.date_posted }}</small>
       </div>
       <h2>
-        <a class="article-title" href="#">{{ post.title }}</a>
+        <a
+          class="article-title"
+          href="{{ url_for('get_single_post', post_id=post.id) }}"
+          >{{ post.title }}</a
+        >
       </h2>
       <p class="article-content">{{ post.content }}</p>
     </div>
   </div>
 </article>
 {% endfor %} {% endblock content %}
-
-<!-- ========== End Section ========== -->
