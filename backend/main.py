@@ -1,9 +1,12 @@
+from ast import List
+
 from app.errors import register_error_handlers
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from schemas import PostCreate, PostResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 app = FastAPI()  # Initialize FastAPI application
@@ -55,6 +58,24 @@ posts: list[dict] = [
 ]
 
 
+@app.post(
+    "/api/posts",
+    response_model=PostResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_post(post: PostCreate):
+    new_id = max(p["id"] for p in posts) + 1 if posts else 1
+    new_post = {
+        "id": new_id,
+        "author": post.author,
+        "title": post.title,
+        "content": post.content,
+        "date_posted": "April 23, 2025",
+    }
+    posts.append(new_post)
+    return new_post
+
+
 # Decorators are used to define routes in FastAPI. The @app.get("/") decorator indicates that this function will handle GET requests to the root URL ("/").
 # include_in_schema=False hides this route from the automatically generated API docs.
 @app.get("/", include_in_schema=False, name="home")
@@ -72,6 +93,27 @@ def home(request: Request):
     )
 
 
+@app.get(
+    "/api/posts",
+    response_model=list[PostResponse],
+)
+def get_posts():
+    return posts
+
+
+# Path parameter is used to capture the post_id from the URL. The function retrieves the post with the matching ID from the posts list and returns it as a JSON response. If no post is found, it returns a 404 error with a message.
+
+
+@app.get("/api/posts/{post_id}", response_model=PostResponse)
+def get_single_post(post_id: int):
+    post = next((post for post in posts if post["id"] == post_id), None)
+    if post is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found!"
+        )
+    return post
+
+
 @app.get("/posts/{post_id}", include_in_schema=False, name="get_single_post")
 def get_single_post_page(request: Request, post_id: int):
     post = next((post for post in posts if post["id"] == post_id), None)
@@ -83,24 +125,6 @@ def get_single_post_page(request: Request, post_id: int):
     return templates.TemplateResponse(
         request, "post.html", {"post": post, "title": title}
     )
-
-
-@app.get("/api/posts")
-def get_posts():
-    return {"posts": posts}
-
-
-# Path parameter is used to capture the post_id from the URL. The function retrieves the post with the matching ID from the posts list and returns it as a JSON response. If no post is found, it returns a 404 error with a message.
-
-
-@app.get("/api/posts/{post_id}")
-def get_single_post(post_id: int):
-    post = next((post for post in posts if post["id"] == post_id), None)
-    if post is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found!"
-        )
-    return {"post": post}
 
 
 @app.exception_handler(StarletteHTTPException)
