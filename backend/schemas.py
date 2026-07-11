@@ -12,13 +12,32 @@ Field is a function provided by Pydantic that allows us to define additional met
 
 """
 
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import (
     BaseModel,
     ConfigDict,
+    EmailStr,
     Field,
 )
+
+
+class UserBase(BaseModel):
+    username: str = Field(min_length=1, max_length=50)
+    email: EmailStr = Field(max_length=120)
+
+
+class UserCreate(UserBase):
+    pass
+
+
+class UserResponse(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    image_file: str | None
+    image_path: str
 
 
 class PostBase(BaseModel):
@@ -33,9 +52,6 @@ class PostBase(BaseModel):
         min_length=1, max_length=100, description="The title of the blog post."
     )
     content: str = Field(min_length=1, description="The content of the blog post.")
-    author: str = Field(
-        min_length=1, max_length=50, description="The author of the blog post."
-    )
 
 
 class PostCreate(PostBase):
@@ -46,7 +62,8 @@ class PostCreate(PostBase):
     'pass`#' means that the class does not add any new fields or methods beyond what is inherited from PostBase. It serves as a distinct model for the purpose of creating posts, allowing for clear separation of concerns and potential future extensions without modifying the base model.
     """
 
-    pass
+    # pass
+    user_id: int  # TEMPORARY
 
 
 class PostResponse(PostBase):
@@ -61,4 +78,10 @@ class PostResponse(PostBase):
     # The `id` field and The `date_created` are generate by the system and not provided by the client. Both fields are essential for clients to manage and display post information effectively.
 
     id: int = Field(description="The unique identifier of the blog post.")
-    date_posted: str = Field(description="The date and time when the post was created.")
+    user_id: int = Field(
+        description="The unique identifier of the user who created the post."
+    )
+    date_posted: datetime = Field(
+        description="The date and time when the blog post was created."
+    )
+    author: UserResponse  # The UserResponse model is used to represent the author of the post, providing detailed information about the user who created the post, including their username, email, and profile image path. This allows clients to display relevant author information alongside the post content in a user-friendly manner. This comes from the relationship defined in the Post model, which links each post to its corresponding user (author) in the database.
