@@ -40,6 +40,13 @@ class UserResponse(UserBase):
     image_path: str
 
 
+# The UserUpdate model is used for updating user information. It allows for partial updates, meaning that any of the fields can be omitted if they are not being updated. The fields are defined as optional (using `str | None`), and default values are set to `None`. This means that if a field is not provided in the update request, it will not be changed in the database. The Field function is used to provide additional metadata and validation rules for each field, such as minimum and maximum lengths.
+class UserUpdate(BaseModel):
+    username: str | None = Field(default=None, min_length=1, max_length=50)
+    email: EmailStr | None = Field(default=None, max_length=120)
+    image_file: str | None = Field(default=None, min_length=1, max_length=200)
+
+
 class PostBase(BaseModel):
     """
     Base model for a blog post.
@@ -64,6 +71,11 @@ class PostCreate(PostBase):
 
     # pass
     user_id: int  # TEMPORARY
+
+
+class PostUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=100)
+    content: str | None = Field(default=None, min_length=1)
 
 
 class PostResponse(PostBase):
