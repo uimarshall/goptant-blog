@@ -22,7 +22,12 @@ class User(Base):
         default=None,
     )
     # The posts attribute establishes a one-to-many relationship between the User and Post models. It indicates that a user can have multiple posts associated with them. The back_populates parameter specifies the corresponding attribute in the Post model that refers back to the User model, allowing for bidirectional access between the two models.
-    posts: Mapped[list[Post]] = relationship(back_populates="author")
+
+    # The cascade parameter is set to "all, delete-orphan", which means that when a user is deleted, all their associated posts will also be deleted. Additionally, if a post is removed from the user's posts collection, it will be automatically deleted from the database as well. This ensures that there are no orphaned posts (posts that has no user) left in the database when a user is removed or when a post is disassociated from a user.
+
+    posts: Mapped[list[Post]] = relationship(
+        back_populates="author", cascade="all, delete-orphan"
+    )
 
     # The image_path property is a computed attribute that returns the path to the user's profile picture. If the user has uploaded a custom image, it returns the path to that image; otherwise, it returns the path to a default profile picture. This property is useful for rendering user profile images in templates or APIs without exposing the underlying file storage details.
     @property
