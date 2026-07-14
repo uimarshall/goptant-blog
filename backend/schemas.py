@@ -29,15 +29,20 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    pass
+    password: str = Field(min_length=8)
 
 
-class UserResponse(UserBase):
+class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    username: str
     image_file: str | None
     image_path: str
+
+
+class UserPrivate(UserPublic):
+    email: EmailStr
 
 
 # The UserUpdate model is used for updating user information. It allows for partial updates, meaning that any of the fields can be omitted if they are not being updated. The fields are defined as optional (using `str | None`), and default values are set to `None`. This means that if a field is not provided in the update request, it will not be changed in the database. The Field function is used to provide additional metadata and validation rules for each field, such as minimum and maximum lengths.
@@ -45,6 +50,11 @@ class UserUpdate(BaseModel):
     username: str | None = Field(default=None, min_length=1, max_length=50)
     email: EmailStr | None = Field(default=None, max_length=120)
     image_file: str | None = Field(default=None, min_length=1, max_length=200)
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 
 class PostBase(BaseModel):
@@ -96,4 +106,4 @@ class PostResponse(PostBase):
     date_posted: datetime = Field(
         description="The date and time when the blog post was created."
     )
-    author: UserResponse  # The UserResponse model is used to represent the author of the post, providing detailed information about the user who created the post, including their username, email, and profile image path. This allows clients to display relevant author information alongside the post content in a user-friendly manner. This comes from the relationship defined in the Post model, which links each post to its corresponding user (author) in the database.
+    author: UserPublic  # The UserResponse model is used to represent the author of the post, providing detailed information about the user who created the post, including their username, email, and profile image path. This allows clients to display relevant author information alongside the post content in a user-friendly manner. This comes from the relationship defined in the Post model, which links each post to its corresponding user (author) in the database.

@@ -1,3 +1,11 @@
+## How to generate secret key
+
+In your terminal, type the command below:
+
+```python
+ python -c "import secrets; print(secrets.token_hex(32))"
+```
+
 In Cmder, activate the `.venv` with:
 
 **CMD mode (default in Cmder):**
@@ -36,7 +44,7 @@ No, `requirements.txt` is **not required** when using `uv`. The modern `uv` work
 
 **In your project**, since you have both `pyproject.toml` and `requirements.txt`, the `requirements.txt` in requirements.txt is likely a legacy file or kept for Docker compatibility (your `Dockerfile` probably runs `pip install -r requirements.txt`). Check your Dockerfile to confirm — if so, you can either keep it for Docker or switch the Dockerfile to use `uv` natively.
 
-## In the instance you have `requirements.txt` cloned from Github and you intend to use `uv`.
+## In the instance you have `requirements.txt` cloned from Github and you intend to use `uv`
 
 Updated todo list
 
@@ -85,10 +93,12 @@ Potentially, yes. Here's what can happen:
    This is the cleanest approach.
 
 3. **If you must install from `requirements.txt`**, do it on a fresh venv:
+
    ```cmd
    uv venv        rem creates a clean .venv
    uv pip install -r requirements.txt
    ```
+
    Then don't run `uv sync` after, as it will try to reconcile with `uv.lock`.
 
 **Recommendation for your project:** Check if requirements.txt and pyproject.toml list the same packages — if so, just delete `requirements.txt` and use `uv sync` going forward.
@@ -122,7 +132,7 @@ uv sync
 
 This will install the new dependencies and update `uv.lock` accordingly.
 
-> why is http://127.0.0.1:8000/health returning "# This site can’t be reached
+> why is <http://127.0.0.1:8000/health> returning "# This site can’t be reached
 > **127.0.0.1** refused to connect." even when the app is running
 
 Let me check how the app is being started and its configuration.
@@ -429,11 +439,11 @@ Use this 3-step model:
 
 - Function marked with Celery task decorator.
 
-2. Enqueue task
+1. Enqueue task
 
 - API sends task to broker and gets task_id.
 
-3. Process + fetch result
+1. Process + fetch result
 
 - Worker runs it.
 - Client checks status/result by task_id.
@@ -460,7 +470,7 @@ What user sees from your API:
 - status: pending
 - result: null
 
-2. STARTED  
+1. STARTED  
    Meaning:
 
 - Worker has picked up the task and is currently executing it.
@@ -470,7 +480,7 @@ What user sees:
 - status: started
 - result: null
 
-3. SUCCESS  
+1. SUCCESS  
    Meaning:
 
 - Task finished with no error.
@@ -483,7 +493,7 @@ What user sees:
 - status: success
 - result: { ...summary data... }
 
-4. FAILURE  
+1. FAILURE  
    Meaning:
 
 - Task threw an exception and did not complete successfully.
@@ -494,14 +504,14 @@ What user sees in your current endpoint:
 - result: null  
   Reason: your code only returns result when successful and a dictionary, in main.py.
 
-5. RETRY  
+1. RETRY  
    Meaning:
 
 - Task failed temporarily and Celery plans to run it again (only if retry behavior is configured).
 
 In your current task, retries are not set yet, so you may not see this often.
 
-6. REVOKED  
+1. REVOKED  
    Meaning:
 
 - Task was cancelled before completion.
