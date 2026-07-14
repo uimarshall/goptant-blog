@@ -76,7 +76,7 @@ async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
     )
 
 
-@app.get("/posts/{post_id}", include_in_schema=False, name="get_single_post")
+@app.get("/posts/{post_id}", include_in_schema=False, name="get_single_post_page")
 async def post_page(
     request: Request, post_id: int, db: Annotated[AsyncSession, Depends(get_db)]
 ):
@@ -114,6 +114,7 @@ async def user_posts_page(
         select(models.Post)
         .options(selectinload(models.Post.author))
         .where(models.Post.user_id == user_id)
+        .order_by(models.Post.date_posted.desc())
     )
     posts = result.scalars().all()
     return templates.TemplateResponse(
