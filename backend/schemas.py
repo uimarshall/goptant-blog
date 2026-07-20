@@ -79,8 +79,7 @@ class PostCreate(PostBase):
     'pass`#' means that the class does not add any new fields or methods beyond what is inherited from PostBase. It serves as a distinct model for the purpose of creating posts, allowing for clear separation of concerns and potential future extensions without modifying the base model.
     """
 
-    # pass
-    user_id: int  # TEMPORARY
+    pass
 
 
 class PostUpdate(BaseModel):
